@@ -10,12 +10,12 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       if (task == 'callDetectionTask') {
-        print('🔄 Background task running');
+        print('Background task running');
         await _checkRecentCalls();
         return Future.value(true);
       }
     } catch (e) {
-      print('❌ Background task error: $e');
+      print('Background task error: $e');
     }
     return Future.value(false);
   });
@@ -45,7 +45,7 @@ Future<void> _checkRecentCalls() async {
       }
     }
   } catch (e) {
-    print('❌ Error in background call check: $e');
+    print('Error in background call check: $e');
   }
 }
 

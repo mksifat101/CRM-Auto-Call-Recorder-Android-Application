@@ -27,13 +27,13 @@ class ApiService {
     required String fileName,
   }) async {
     try {
-      print('📤 Sending call recording data to Lyfemaster API...');
+      print('Sending call recording data to Lyfemaster API...');
 
       // Load tokens again to ensure they're current
       await _loadTokens();
 
       if (_authToken == null) {
-        print('❌ Authentication token not found. Please login first.');
+        print('Authentication token not found. Please login first.');
         return {'success': false, 'error': 'Not authenticated'};
       }
 
@@ -49,12 +49,12 @@ class ApiService {
         'contact_number': cleanPhoneNumber,
       });
 
-      print('📋 Request URL: $url');
-      print('📋 Request Body: $body');
-      print('📋 Phone Number: $cleanPhoneNumber');
-      print('📋 S3 URL: $s3Url');
-      print('📋 Auth Token: ${_authToken?.substring(0, 20)}...');
-      print('📋 CSRF Token: ${_csrfToken?.substring(0, 20)}...');
+      print('Request URL: $url');
+      print('Request Body: $body');
+      print('Phone Number: $cleanPhoneNumber');
+      print('S3 URL: $s3Url');
+      print('Auth Token: ${_authToken?.substring(0, 20)}...');
+      print('CSRF Token: ${_csrfToken?.substring(0, 20)}...');
 
       final response = await http.post(
         url,
@@ -67,13 +67,13 @@ class ApiService {
         body: body,
       );
 
-      print('📡 API Response Status: ${response.statusCode}');
-      print('📡 API Response Body: ${response.body}');
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        print('✅ Recording data sent to API successfully');
-        print('📝 API Response: $responseData');
+        print('Recording data sent to API successfully');
+        print('API Response: $responseData');
 
         return {
           'success': true,
@@ -81,8 +81,8 @@ class ApiService {
           'status_code': response.statusCode,
         };
       } else {
-        print('❌ Failed to send recording data: ${response.statusCode}');
-        print('❌ Error: ${response.body}');
+        print('Failed to send recording data: ${response.statusCode}');
+        print('Error: ${response.body}');
 
         return {
           'success': false,
@@ -92,7 +92,7 @@ class ApiService {
         };
       }
     } catch (e, stackTrace) {
-      print('💥 Error sending to API: $e');
+      print('Error sending to API: $e');
       print('Stack Trace: $stackTrace');
 
       return {'success': false, 'error': e.toString()};

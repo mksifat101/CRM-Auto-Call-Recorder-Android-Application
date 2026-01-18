@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 class NotificationService {
   static const platform = MethodChannel('call_recorder/call_detection');
 
-  // নোটিফিকেশন সিস্টেম ইনিশিয়ালাইজ করা
+  //
   Future<void> initialize() async {
     await AwesomeNotifications().initialize(
-      null, // লোগো আইকন (null থাকলে ডিফল্ট আইকন আসবে)
+      null, //
       [
         NotificationChannel(
           channelKey: 'call_channel',
@@ -25,13 +25,13 @@ class NotificationService {
       debug: false,
     );
 
-    // অ্যাকশন লিসেনার সেট করা (অবশ্যই স্ট্যাটিক মেথড হতে হবে)
+    //
     AwesomeNotifications().setListeners(
       onActionReceivedMethod: onActionReceivedMethod,
     );
   }
 
-  // নোটিফিকেশন বাটনে ক্লিক করলে এই মেথডটি ব্যাকগ্রাউন্ডে কাজ করবে
+  //
   @pragma("vm:entry-point")
   static Future<void> onActionReceivedMethod(
     ReceivedAction receivedAction,
@@ -41,18 +41,18 @@ class NotificationService {
           receivedAction.payload?['phone_number'] ?? "Unknown";
 
       try {
-        // নেটিভ অ্যান্ড্রয়েড সার্ভিসকে কল করা
+        //
         await platform.invokeMethod('startRecordingService', {
           "phone_number": phoneNumber,
         });
-        print("✅ নেটিভ রেকর্ডিং সার্ভিস স্টার্ট হয়েছে");
+        print("Native Recording Started");
       } on PlatformException catch (e) {
-        print("❌ সার্ভিস স্টার্ট করতে সমস্যা: ${e.message}");
+        print("Service Error: ${e.message}");
       }
     }
   }
 
-  // ইনকামিং কলের নোটিফিকেশন দেখানো
+  //
   Future<void> showCallNotification(String phoneNumber) async {
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) return;
@@ -62,7 +62,7 @@ class NotificationService {
         id: 1,
         channelKey: 'call_channel',
         title: 'Call from: $phoneNumber',
-        body: 'ট্যাপ করুন "Record Now" কলটি রেকর্ড করার জন্য',
+        body: 'Tap "Record Now" for call record',
         payload: {'phone_number': phoneNumber},
         notificationLayout: NotificationLayout.Default,
         category: NotificationCategory.Call,

@@ -61,6 +61,14 @@ Future<void> _requestPermissions() async {
   });
 }
 
+Future<void> requestPermissions() async {
+  await [
+    Permission.microphone,
+    Permission.phone,
+    Permission.notification,
+  ].request();
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

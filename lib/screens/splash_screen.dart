@@ -39,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const Icon(Icons.phone_in_talk, size: 100, color: Colors.white),
             const SizedBox(height: 20),
             const Text(
-              'Call Recorder Pro',
+              'LyfeMaster Recorder',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

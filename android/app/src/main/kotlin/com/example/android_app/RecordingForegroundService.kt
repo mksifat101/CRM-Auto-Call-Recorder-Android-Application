@@ -2,12 +2,12 @@ package com.example.android_app
 
 import android.app.*
 import android.content.*
+import android.content.pm.ServiceInfo
 import android.media.MediaRecorder
 import android.os.*
 import androidx.core.app.NotificationCompat
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
-import java.util.*
 
 class RecordingForegroundService : Service() {
     private var recorder: MediaRecorder? = null
@@ -15,7 +15,6 @@ class RecordingForegroundService : Service() {
     private lateinit var filePath: String
     private var startTime: Long = 0
     private val handler = Handler(Looper.getMainLooper())
-    private lateinit var notificationManager: NotificationManager
 
     companion object {
         const val CHANNEL_ID = "CallRecordChannel"
@@ -38,29 +37,23 @@ class RecordingForegroundService : Service() {
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val phoneNumber = intent?.getStringExtra("phone_number") ?: "Unknown"
-        
-        // কল স্টপ করার জন্য পেন্ডিং ইনটেন্ট
-        val stopIntent = Intent(this, StopServiceReceiver::class.java)
-        val stopPendingIntent = PendingIntent.getBroadcast(
-            this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val action = intent?.action
 
-        startTime = System.currentTimeMillis()
-        startMediaRecording()
-        updateNotification(phoneNumber, "00:00", stopPendingIntent)
-        startTimer(phoneNumber, stopPendingIntent)
-        
+        if (action == "START_RECORDING_ACTION") {
+            startTime = System.currentTimeMillis()
+            startMediaRecording()
+            isRecording = true
+            startTimer(phoneNumber) 
+        } else {
+            isRecording = false
+            updateNotification(phoneNumber, "00:00", false)
+        }
         return START_STICKY
     }
 
-    private fun startTimer(phoneNumber: String, stopIntent: PendingIntent) {
+    private fun startTimer(phoneNumber: String) {
         handler.post(object : Runnable {
             override fun run() {
                 if (isRecording) {
@@ -68,25 +61,39 @@ class RecordingForegroundService : Service() {
                     val seconds = (millis / 1000) % 60
                     val minutes = (millis / (1000 * 60)) % 60
                     val timeString = String.format("%02d:%02d", minutes, seconds)
-                    
-                    updateNotification(phoneNumber, timeString, stopIntent)
+                    updateNotification(phoneNumber, timeString, true)
                     handler.postDelayed(this, 1000)
                 }
             }
         })
     }
 
-    private fun updateNotification(phoneNumber: String, time: String, stopIntent: PendingIntent) {
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Recording Call: $phoneNumber")
-            .setContentText("Duration: $time")
+    private fun updateNotification(phoneNumber: String, time: String, recordingActive: Boolean) {
+        val stopIntent = Intent(this, StopServiceReceiver::class.java)
+        val stopPendingIntent = PendingIntent.getBroadcast(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val recordNowIntent = Intent(this, StartRecordingReceiver::class.java)
+        val recordPendingIntent = PendingIntent.getBroadcast(this, 1, recordNowIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Call with: $phoneNumber")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setOngoing(true)
-            .setOnlyAlertOnce(true) // যাতে বারবার সাউন্ড না হয়
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop Recording", stopIntent)
-            .build()
+            .setOnlyAlertOnce(true)
 
-        startForeground(NOTIFICATION_ID, notification)
+        if (!recordingActive) {
+            builder.setContentText("Tap to start recording")
+            builder.addAction(android.R.drawable.ic_media_play, "Record Now", recordPendingIntent)
+        } else {
+            builder.setContentText("Recording... $time")
+            builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop Recording", stopPendingIntent)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+        } else {
+            startForeground(NOTIFICATION_ID, builder.build())
+        }
     }
 
     private fun startMediaRecording() {
@@ -104,10 +111,8 @@ class RecordingForegroundService : Service() {
                 prepare()
                 start()
             }
-            isRecording = true
-            // ফ্লার্টারকে জানানো যে রেকর্ডিং শুরু হয়েছে
             methodChannel?.invokeMethod("onRecordingStarted", null)
-        } catch (e: Exception) { stopSelf() }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     override fun onDestroy() {
@@ -126,10 +131,18 @@ class RecordingForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 }
 
+// এই ক্লাসগুলো এখানে থাকলে কোনো Redeclaration এরর হবে না
 class StopServiceReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // নোটিফিকেশনের স্টপ বাটনে ক্লিক করলে এই কোডটি সার্ভিস বন্ধ করে দেবে
-        val stopServiceIntent = Intent(context, RecordingForegroundService::class.java)
-        context.stopService(stopServiceIntent)
+        RecordingForegroundService.stopService(context)
+    }
+}
+
+class StartRecordingReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val serviceIntent = Intent(context, RecordingForegroundService::class.java).apply {
+            action = "START_RECORDING_ACTION"
+        }
+        context.startService(serviceIntent)
     }
 }

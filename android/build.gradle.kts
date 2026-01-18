@@ -21,9 +21,9 @@ subprojects {
     project.buildDir = file("${rootProject.buildDir}/${project.name}")
 }
 
-// ✅ 'telephony' এবং অন্যান্য প্লাগইনের Namespace এরর ফিক্স করার নতুন পদ্ধতি
+// ✅ 'telephony'
 subprojects {
-    // afterEvaluate এর বদলে সরাসরি কনফিগারেশন চেক
+    // afterEvaluate
     project.plugins.whenPluginAdded {
         if (this is com.android.build.gradle.BasePlugin) {
             project.extensions.getByType(com.android.build.gradle.BaseExtension::class.java).apply {

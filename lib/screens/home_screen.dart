@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // ফ্রেম রেন্ডার হওয়ার পর ডাটা লোড করা ভালো
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadUserData();
       _startServices();
@@ -44,10 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final recorder = Provider.of<AudioRecorderService>(context, listen: false);
 
-    // কল ডিটেকশন শুরু করা
     callDetector.startDetection();
 
-    // আগের রেকর্ডিংগুলো লোড করা
     recorder.loadRecordings();
   }
 
@@ -61,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // লিসেনার হিসেবে প্রোভাইডার সেট করা যাতে রেকর্ডিং লিস্ট অটো আপডেট হয়
     final recorder = Provider.of<AudioRecorderService>(context);
     final callDetector = Provider.of<CallDetectionService>(context);
     final recentRecordings = recorder.recordings.reversed.take(10).toList();
@@ -88,11 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ইউজার ওয়েলকাম সেকশন
             _buildWelcomeCard(),
             const SizedBox(height: 20),
 
-            // স্ট্যাটাস ইনডিকেটর
             Row(
               children: [
                 _buildStatusIndicator(
@@ -114,7 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // বর্তমানে কোনো রেকর্ডিং চলছে কি না
             if (recorder.isRecording)
               _buildLiveRecordingCard(recorder, callDetector),
 
@@ -125,7 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 10),
 
-            // রেকর্ডিং লিস্ট
             Expanded(
               child: recentRecordings.isEmpty
                   ? const Center(

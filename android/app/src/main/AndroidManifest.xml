@@ -37,11 +37,18 @@
         <receiver 
             android:name=".StopServiceReceiver"
             android:exported="false" />
+        <receiver android:name=".StartRecordingReceiver" android:exported="false" />
         <service
             android:name=".RecordingForegroundService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+        <receiver android:name=".CallReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.telephony.action.PHONE_STATE_CHANGED" />
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
+            </intent-filter>
+        </receiver>
         <!-- Background service -->
         <service
             android:name="com.dexterous.flutterlocalnotifications.ForegroundService"

@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.mic, size: 80, color: Colors.blue),
               const SizedBox(height: 16),
               const Text(
-                'Call Recorder Pro',
+                'LyfeMaster Recorder',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
